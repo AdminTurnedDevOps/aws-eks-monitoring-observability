@@ -1,0 +1,54 @@
+## You must set secrets for:
+# - AWS Access Key
+# - AWS secret key
+
+name: 'Deploy Kube-Prometheus To EKS'
+
+on:
+  workflow_dispatch:
+      
+env:
+  EKS_REGION: "us-east-1"
+  EKS_CLUSTER: "k8squickstart-cluster"
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          
+      - uses: azure/setup-helm@v3
+        id: install
+        
+      - name: Check AWS version
+        run: |
+          aws --version
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set region $EKS_REGION
+          aws sts get-caller-identity
+          
+      - name: Connect to EKS cluster 
+        run: aws eks --region $EKS_REGION update-kubeconfig --name $EKS_CLUSTER
+      
+      - name: Helm Install Kube-Prometheus Repo
+        shell: bash
+        run: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        
+      - name: Helm Install Kube-Prometheus
+        shell: bash
+        run: helm install kube-prometheus -n kube-prometheus prometheus-community/kube-prometheus-stack --create-namespace
+
+      # Verify deployment
+      - name: Verify the deployment
+        run: helm list -n kube-prometheus
