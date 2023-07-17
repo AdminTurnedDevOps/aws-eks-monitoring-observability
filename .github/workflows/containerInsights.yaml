@@ -34,6 +34,9 @@ jobs:
           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
           aws configure set region $EKS_REGION
           aws sts get-caller-identity
+          
+      - name: Connect to EKS cluster 
+        run: aws eks --region $EKS_REGION update-kubeconfig --name $EKS_CLUSTER
 
       - name: Install Container Insights
         run: |
