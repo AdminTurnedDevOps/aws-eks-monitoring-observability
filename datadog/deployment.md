@@ -1,14 +1,21 @@
-helm repo add argo https://argoproj.github.io/argo-helm
+```
+helm repo add datadog https://helm.datadoghq.com
+
+helm repo update
+```
 
 ```
-helm install argocd -n argocd argo/argo-cd \
---set redis-ha.enabled=true \
---set controller.replicas=1 \
---set server.autoscaling.enabled=true \
---set server.autoscaling.minReplicas=2 \
---set repoServer.autoscaling.enabled=true \
---set repoServer.autoscaling.minReplicas=2 \
---set applicationSet.replicaCount=2 \
---set server.service.type=LoadBalancer \
---create-namespace
+helm install datadog -n datadog \
+--set datadog.site='datadoghq.com' \
+--set datadog.clusterName=$CLUSTER_NAME \
+--set datadog.clusterAgent.replicas='2' \
+--set datadog.clusterAgent.createPodDisruptionBudget='true' \
+--set datadog.kubeStateMetricsEnabled=true \
+--set datadog.kubeStateMetricsCore.enabled=true \
+--set datadog.logs.enabled=true \
+--set datadog.logs.containerCollectAll=true \
+--set datadog.apiKey=$API_KEY \
+--set datadog.processAgent.enabled=true \
+--set targetSystem='linux' \
+datadog/datadog --create-namespace
 ```
